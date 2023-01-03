@@ -3,6 +3,7 @@ import compression from "compression";
 import cors from 'cors';
 import SSE from "express-sse";
 import getViolatingDrones from "./getViolatingDrones.js";
+import path from "path"
 
 const app = express()
 app.use(compression()) // Compression middleware is required for express-sse to work
@@ -11,8 +12,16 @@ app.use(cors())
 const PORT = 8080
 const sse = new SSE()
 
+// Serve static files from the React frontend app
+app.use(express.static(path.join(__dirname, '../birdnest-frontend/build')))
+
 // Clients will send a request to this route to set up listening to server side events
 app.get('/stream', sse.init);
+
+// Anything that doesn't match the above, send back index.html
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname + '../birdnest-frontend/build/index.html'))
+})
 
 app.listen(PORT, () => {
   console.log(`Birdnest app listening on port ${PORT}`)
