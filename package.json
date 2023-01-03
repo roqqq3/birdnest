@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "cd ./birdnest-backend/ && npm install && npm start && cd ../birdnest-frontend/ && npm install && npm run build"
+    "start": "cd ./birdnest-frontend/ && npm install && npm run build && cd ../birdnest-backend/ && npm install && npm start"
   },
   "author": "",
   "license": "ISC"
