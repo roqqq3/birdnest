@@ -10,7 +10,7 @@ const app = express()
 app.use(compression()) // Compression middleware is required for express-sse to work
 app.use(cors())
 
-const PORT = 8080
+const PORT = process.env.PORT || 8080
 const sse = new SSE()
 
 const __filename = fileURLToPath(import.meta.url);

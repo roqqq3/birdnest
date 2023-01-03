@@ -5,7 +5,7 @@ const App = () => {
     const [drones, setDrones] = useState([])
 
     useEffect(() => {
-        var es = new EventSource("http://localhost:8080/stream");
+        var es = new EventSource("/stream");
         es.onmessage = (event) => {
             const newDrones = JSON.parse(event.data)
             setDrones(newDrones)
