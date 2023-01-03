@@ -20,7 +20,10 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, '/../birdnest-frontend/build')))
 
 // Clients will send a request to this route to set up listening to server side events
-app.get('/stream', sse.init);
+app.get('/stream', (req, res) => {
+    sse.init(req, res) // Start sending events to this client
+    sse.send(recentViolations) // Send currently stored violations to the client that just joined
+});
 
 // Anything that doesn't match the above, send back index.html
 app.get('*', (req, res) => {
