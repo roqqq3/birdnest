@@ -4,7 +4,7 @@ module.exports = function(app) {
   app.use(
     '/stream',
     createProxyMiddleware({
-      target: `http://localhost:${process.env.PORT}`,
+      target: `http://localhost:${process.env.PORT || 8080}`,
       changeOrigin: true,
     })
   );

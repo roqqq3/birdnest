@@ -8,6 +8,7 @@ const App = () => {
         var es = new EventSource("/stream");
         es.onmessage = (event) => {
             const newDrones = JSON.parse(event.data)
+            console.log("new", newDrones)
             setDrones(newDrones)
         };
     }, [])
@@ -17,7 +18,7 @@ const App = () => {
             return "Unknown pilot"
         }
         return (
-            <div id={drone.serialNumber} className="list-item">
+            <div key={drone.serialNumber} className="list-item">
                 <p>{drone.pilot.firstName} {drone.pilot.lastName}</p>
                 <p>{drone.pilot.email}</p>
                 <p>{drone.pilot.phoneNumber}</p>
