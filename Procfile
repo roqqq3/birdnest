@@ -1,1 +1,0 @@
-web: sh -c 'cd ./birdnest-backend/ && npm install && npm start' && 'cd ./birdnest-frontend/ && npm install && npm run build'
