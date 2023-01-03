@@ -4,6 +4,7 @@ import cors from 'cors';
 import SSE from "express-sse";
 import getViolatingDrones from "./getViolatingDrones.js";
 import path from "path"
+import { fileURLToPath } from "url";
 
 const app = express()
 app.use(compression()) // Compression middleware is required for express-sse to work
@@ -11,6 +12,9 @@ app.use(cors())
 
 const PORT = 8080
 const sse = new SSE()
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Serve static files from the React frontend app
 app.use(express.static(path.join(__dirname, '../birdnest-frontend/build')))
