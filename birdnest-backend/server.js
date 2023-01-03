@@ -17,14 +17,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Serve static files from the React frontend app
-app.use(express.static(path.join(__dirname, '../birdnest-frontend/build')))
+app.use(express.static(path.join(__dirname, '/../birdnest-frontend/build')))
 
 // Clients will send a request to this route to set up listening to server side events
 app.get('/stream', sse.init);
 
 // Anything that doesn't match the above, send back index.html
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname + '../birdnest-frontend/build/index.html'))
+    res.sendFile(path.join(__dirname + '/../birdnest-frontend/build/index.html'))
 })
 
 app.listen(PORT, () => {
