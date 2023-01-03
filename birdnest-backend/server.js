@@ -2,7 +2,7 @@ import express from "express";
 import compression from "compression";
 import cors from 'cors';
 import SSE from "express-sse";
-import getViolatingDrones from "./getViolatingDrones.js";
+import { getRecentlyViolatingDrones } from "./getViolatingDrones.js";
 import path from "path"
 import { fileURLToPath } from "url";
 
@@ -13,6 +13,7 @@ app.use(cors())
 const PORT = process.env.PORT || 8080
 const sse = new SSE()
 
+// Workaround to make __dirname work when using modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -34,10 +35,6 @@ app.listen(PORT, () => {
   console.log(`Birdnest app listening on port ${PORT}`)
 })
 
-/*  Object that drone violations are stored in. Format of the object
-    is [serialNumber] --> Array[Drone]. This format was chosen because we want
-    to show the closest violation for each drone in the last 10 minutes. */
-let recentViolations = {}
 /*  Store previously sent violations. New violations are compared to these to
     determine whether we need to send any data to the clients. Stored as a
     JSON string because it allows us to make a deep equality check by simply
@@ -45,39 +42,13 @@ let recentViolations = {}
 let previousSentViolations = ""
 
 const reportDrones = async () => {
-    const nowViolatingDrones = await getViolatingDrones()
-    nowViolatingDrones.forEach(drone => {
-        if (recentViolations[drone.serialNumber]) {
-            recentViolations[drone.serialNumber].push(drone)
-        } else {
-            recentViolations[drone.serialNumber] = [drone]
-        }
-    })
-    // Timestamp 10 minutes ago
-    const removeTimestamp = new Date(Date.now() - 10 * 60 * 1000)
-    // Remove violations older than 10 minutes from each drone.
-    Object.keys(recentViolations).forEach(droneSerial => {
-        const oldRemoved = recentViolations[droneSerial].filter(drone => new Date(drone.timestamp) > removeTimestamp)
-        if (oldRemoved.length === 0) {
-            // If there are no recent violations for this drone anymore, remove the serial key.
-            delete recentViolations[droneSerial]
-        } else {
-            recentViolations[droneSerial] = oldRemoved
-        }
-    })
-    // For each drone, return the closest violation.
-    const violationsToSend = Object.values(recentViolations).map(droneList =>
-        droneList.reduce((closest, curr) =>
-            !closest || curr.distToNest < closest.distToNest
-                ? curr
-                : closest
-        , null)
-    )
+    const recentViolations = await getRecentlyViolatingDrones()
     /*  Compare violations that we want to send to those previously sent.
-        If they are equal, there is no need to send anything to the clients. */
-    const jsonStringViolations = JSON.stringify(violationsToSend)
+        If they are equal, there is no need to send anything to the clients.
+        This reduces the amount of requests. */
+    const jsonStringViolations = JSON.stringify(recentViolations)
     if (jsonStringViolations !== previousSentViolations) {
-        sse.send(violationsToSend)
+        sse.send(violationsToSend) // Send the violations array to all clients
     }
     previousSentViolations = jsonStringViolations
 }

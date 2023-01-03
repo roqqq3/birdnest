@@ -5,7 +5,6 @@ const parser = new XMLParser({ ignoreAttributes: false })
 const getDroneDistToNest = (drone) => {
     const nestX = 250000
     const nestY = 250000 // X and Y are separated for clarification purposes
-    console.log(Math.hypot(drone.positionX - nestX, drone.positionY - nestY))
     return Math.hypot(drone.positionX - nestX, drone.positionY - nestY)
 }
 
@@ -24,7 +23,7 @@ const distanceToMeters = (dist) => {
     return Math.round((dist / 1000 + Number.EPSILON) * 100) / 100
 }
 
-const getViolatingDrones = async () => {
+const getCurrentlyViolatingDrones = async () => {
     try {
         const response = await fetch("http://assignments.reaktor.com/birdnest/drones")
         if (!response.ok) { // Returned something other than 200, e.g. 404
@@ -52,4 +51,38 @@ const getViolatingDrones = async () => {
     }
 }
 
-export default getViolatingDrones
+/*  Object that drone violations are stored in. Format of the object
+    is [serialNumber] --> Array[Drone]. This format was chosen because we want
+    to show the closest violation for each drone in the last 10 minutes. */
+export let recentViolations = {}
+
+export const getRecentlyViolatingDrones = async () => {
+    const nowViolatingDrones = await getCurrentlyViolatingDrones()
+    nowViolatingDrones.forEach(drone => {
+        if (recentViolations[drone.serialNumber]) { // If there already is a key for this drone in the object
+            recentViolations[drone.serialNumber].push(drone)
+        } else { // If no key for this drone exists yet
+            recentViolations[drone.serialNumber] = [drone]
+        }
+    })
+    // Timestamp 10 minutes ago
+    const removeTimestamp = new Date(Date.now() - 10 * 60 * 1000)
+    // Remove violations older than 10 minutes from each drone.
+    Object.keys(recentViolations).forEach(droneSerial => {
+        const oldRemoved = recentViolations[droneSerial].filter(drone => new Date(drone.timestamp) > removeTimestamp)
+        if (oldRemoved.length === 0) {
+            // If there are no recent violations for this drone anymore, remove the serial key.
+            delete recentViolations[droneSerial]
+        } else {
+            recentViolations[droneSerial] = oldRemoved
+        }
+    })
+    // For each drone, return the closest violation (in the last 10 minutes).
+    return Object.values(recentViolations).map(droneList =>
+        droneList.reduce((closest, curr) =>
+            !closest || curr.distToNest < closest.distToNest
+                ? curr
+                : closest
+        , null)
+    )
+}
