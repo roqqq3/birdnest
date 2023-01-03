@@ -48,7 +48,7 @@ const reportDrones = async () => {
         This reduces the amount of requests. */
     const jsonStringViolations = JSON.stringify(recentViolations)
     if (jsonStringViolations !== previousSentViolations) {
-        sse.send(violationsToSend) // Send the violations array to all clients
+        sse.send(recentViolations) // Send the violations array to all clients
     }
     previousSentViolations = jsonStringViolations
 }
