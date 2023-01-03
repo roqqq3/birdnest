@@ -2,7 +2,7 @@ import express from "express";
 import compression from "compression";
 import cors from 'cors';
 import SSE from "express-sse";
-import { getRecentlyViolatingDrones } from "./getViolatingDrones.js";
+import { getRecentlyViolatingDrones, recentViolations } from "./getViolatingDrones.js";
 import path from "path"
 import { fileURLToPath } from "url";
 
@@ -42,13 +42,13 @@ app.listen(PORT, () => {
 let previousSentViolations = ""
 
 const reportDrones = async () => {
-    const recentViolations = await getRecentlyViolatingDrones()
+    const violationsToSend = await getRecentlyViolatingDrones()
     /*  Compare violations that we want to send to those previously sent.
         If they are equal, there is no need to send anything to the clients.
         This reduces the amount of requests. */
-    const jsonStringViolations = JSON.stringify(recentViolations)
+    const jsonStringViolations = JSON.stringify(violationsToSend)
     if (jsonStringViolations !== previousSentViolations) {
-        sse.send(recentViolations) // Send the violations array to all clients
+        sse.send(violationsToSend) // Send the violations array to all clients
     }
     previousSentViolations = jsonStringViolations
 }
