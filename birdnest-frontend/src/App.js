@@ -1,14 +1,14 @@
-import "./style.css";
-import { useEffect, useState } from "react";
+import "./style.css"
+import { useEffect, useState } from "react"
 
 const App = () => {
     const [drones, setDrones] = useState([])
 
     useEffect(() => {
+        // Start listening to server side events
         var es = new EventSource("/stream");
         es.onmessage = (event) => {
             const newDrones = JSON.parse(event.data)
-            console.log("new", newDrones)
             setDrones(newDrones)
         };
     }, [])

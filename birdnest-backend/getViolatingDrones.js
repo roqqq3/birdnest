@@ -10,7 +10,8 @@ const getDroneDistToNest = (drone) => {
     const nestX = 250000
     const nestY = 250000 // X and Y are separated for clarification purposes
     const distance = Math.hypot(drone.positionX - nestX, drone.positionY - nestY)
-    // Epsilon is used to ensure that numbers such as 1.005 are rounded correctly.
+    /*  Convert millimeters to meters and round to two decimal places. 
+        Epsilon is used to ensure that numbers such as 1.005 are rounded correctly. */
     return Math.round((distance / 1000 + Number.EPSILON) * 100) / 100
 }
 
@@ -48,7 +49,7 @@ const getCurrentlyViolatingDrones = async () => {
             promise inside the map function below. */
         const pilots = await Promise.all(violatingDrones.map(drone => getDronePilot(drone.serialNumber)))
         return violatingDrones.map((drone, idx) => ({ // Only send necessary data to make requests lighter
-            serialNumber: drone.serialNumber, // Used as unique ID in React frontend
+            serialNumber: drone.serialNumber, // Used as unique ID (key) in React frontend
             timestamp: timestamp,
             distToNest: drone.distToNest.toFixed(2), // Make distance always two decimal places (e.g. 2.50)
             pilot: pilots[idx]
